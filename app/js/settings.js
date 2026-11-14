@@ -178,7 +178,7 @@
                 TV.alert({ title: T("Support APL TV"), message: T("Scan the code with your phone's camera. Thank you!"), node: qr });
             } });
         rows.push({ label: "APL TV", value: T("Version {v}", { v: TV.VERSION }) + (TV.ANDROID ? " · " + T("Package {v}", { v: apkVersion() || T("older than 1.0.15") }) : ""),
-                    desc: T("Created by Knikt (Gero Corp.)") + "\n" + T("A player for your own playlists. APL TV comes with no channels.") });
+                    desc: T("Created by Cryan (GitColeS), forked from Knikt (Gero Corp.)") + "\n" + T("A player for your own playlists. APL TV comes with no channels.") });
         rows.push({ label: T("Credits"), desc: T("Film and series data and pictures: TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.") + "\n" + T("IMDb ratings: Stremio's Cinemeta. Subtitles: OpenSubtitles. TV guides: your provider, epg.pw and iptv-epg.org.") + "\n" +
             T("Sports: scores, match photos and broadcasters by ESPN, other sports by 365Scores, Ligue 1 and Ligue 2 channels by the LFP, stadium photos from Wikipedia (Wikimedia Commons, free licences), video summaries on YouTube from the official channels.") });
         return { title: T("Settings"), icon: "gear", desc: T("Your playlists and how APL TV works."), rows: rows };

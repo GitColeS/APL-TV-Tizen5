@@ -788,6 +788,7 @@ window.TV_LANG_PL = {
     "TMDB did not accept this key.": "Serwis TMDB nie zaakceptował tego klucza.",
     "TMDB key saved": "Zapisano klucz TMDB",
     "Created by Knikt (Gero Corp.)": "Autor: Knikt (Gero Corp.)",
+    "Created by Cryan (GitColeS), forked from Knikt (Gero Corp.)": "Autor: Cryan (GitColeS), fork projektu Knikt (Gero Corp.)",
     "Credits": "Podziękowania",
     "Film and series data and pictures: TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.": "Dane i obrazy filmów i seriali: TMDB. Ten produkt korzysta z API TMDB, ale nie jest zatwierdzony ani certyfikowany przez TMDB.",
     "IMDb ratings: Stremio's Cinemeta. Subtitles: OpenSubtitles. TV guides: your provider, epg.pw and iptv-epg.org.": "Oceny IMDb: Cinemeta ze Stremio. Napisy: OpenSubtitles. Przewodniki TV: Twój dostawca, epg.pw i iptv-epg.org.",
