@@ -72,7 +72,7 @@
         rows.push(toggleRow(T("Autoplay Next Episode"), "autoNext", T("Off: near the end of an episode, the next one is only offered (with the series' picture, never a spoiler).")));
         rows.push(toggleRow(T("Pause Live TV (Timeshift)"), "timeshift", T("Pause a channel and go back in it (◀ ▶ 10 s): APL TV keeps it from the moment you pause, up to an hour. Play/Pause or the first button of the bar pauses, Stop goes back to live.")));
         // Tizen 5 fork: short notes of what the helper does for Pluto TV streams, off unless you turn them on
-        rows.push(toggleRow(T("Tizen 5 diagnostics"), "t5debug", T("Keeps short notes about Pluto TV streams in the screen's helper, to find out why a channel has no sound. They can be read on your home network while this is on, and are cleared when it is off.")));
+        rows.push(toggleRow(T("Tizen 5 Diagnostics"), "t5debug", T("Keeps short notes about Pluto TV streams in the screen's helper, to find out why a channel has no sound. They can be read on your home network while this is on, and are cleared when it is off.")));
         rows.push({ label: T("Live Stream Format"), value: TV.pref("liveFormat") === "m3u8" ? "HLS (m3u8)" : "MPEG-TS", desc: T("For Xtream accounts. Try HLS if channels stutter or do not start."),
             run: function () { TV.setPref("liveFormat", TV.pref("liveFormat") === "m3u8" ? "ts" : "m3u8"); redraw(); } });
         rows.push({ label: T("Picture Size"), value: { fit: T("Fit to Screen"), fill: T("Fill the Screen"), auto: T("Original Shape") }[TV.pref("pictureMode")] || T("Fit to Screen"), acc: "chevron", icon: "aspect",
