@@ -91,4 +91,31 @@
     [6000, 15000, 30000, 60000, 120000].forEach(function (ms) { setTimeout(function () { if (!helperUp && hasPluto()) check(); }, ms); });
     // then every few minutes: keeps the helper awake while the app runs, and notices if it stopped
     setInterval(function () { if (hasPluto()) check(); }, 4 * 60 * 1000);
+
+    /* ---------- 3. diagnostics: the app's own log, readable from a PC on the home network ---------- */
+    // While Settings > Tizen 5 Diagnostics is on, the lines TV.log keeps (updates, errors, playback) are sent to the helper
+    // every few seconds; it shows them at http://<screen>:8765/hls-debug. Off: nothing is sent and the helper clears its notes.
+    // TV.log already hides passwords in addresses (TV.redact).
+    var sentTotal = -1, wasOn = false, sending = false;
+    function errLine(prefix, m) { try { global.TV.log(prefix + ": " + String(m).slice(0, 300)); } catch (e) {} }
+    global.addEventListener("error", function (ev) { errLine("js error", (ev && ev.message) + " @" + String(ev && ev.filename || "").split("/").pop() + ":" + (ev && ev.lineno)); });
+    global.addEventListener("unhandledrejection", function (ev) { errLine("unhandled rejection", ev && ev.reason && (ev.reason.message || ev.reason)); });
+    function flush() {
+        var TV = global.TV;
+        if (!TV || !TV.pref || !TV.http || sending) return;
+        var on = !!TV.pref("t5debug");
+        if (!on && !wasOn) return;
+        var total = TV.logTotal || 0, lines = [];
+        if (on) {
+            if (sentTotal < 0) sentTotal = Math.max(0, total - (TV.logs || []).length);       // first time: everything still kept
+            var n = Math.min(total - sentTotal, (TV.logs || []).length);
+            if (n > 0) lines = TV.logs.slice(TV.logs.length - n);
+        }
+        if (on && !lines.length && wasOn) return;
+        sending = true;
+        TV.http(base() + "/t5log", { method: "POST", timeout: 4000, body: JSON.stringify({ d: on ? 1 : 0, lines: lines }) }).then(function (r) {
+            if (r.status === 200) { wasOn = on; if (on) sentTotal = total; else sentTotal = -1; }
+        }).then(null, function () { if (on) check(); }).then(function () { sending = false; });
+    }
+    setInterval(flush, 4000);
 })(window);

@@ -22,7 +22,7 @@ var zlib = require("zlib");
 var os = require("os");
 var crypto = require("crypto");
 
-var PORT = 8765, VERSION = "1.1.3";
+var PORT = 8765, VERSION = "1.1.4";
 var IDLE_MS = 15 * 60 * 1000, SESSION_MS = 20 * 60 * 1000;
 var UA = "APL TV/" + VERSION + " (" + (global.APLTV_PLATFORM || "Tizen") + ")";
 
@@ -1062,7 +1062,7 @@ function wrongCode() { if (session && ++session.wrong >= 20) { log("too many wro
    no sound. The same playlist without that entry makes it use the audio that is in the video. Only Pluto's own links
    are handled here (where the audio is in the video too); another stream's separate audio may be its only audio. */
 var hlsLog = [], hlsOn = false;      // diagnostics (Settings > Tizen 5 diagnostics): what /hls received and answered, read at /hls-debug
-function hlsNote(line) { if (!hlsOn) return; hlsLog.push(new Date().toTimeString().slice(0, 8) + " " + line); if (hlsLog.length > 80) hlsLog.shift(); }
+function hlsNote(line) { if (!hlsOn) return; hlsLog.push(new Date().toTimeString().slice(0, 8) + " " + line); if (hlsLog.length > 400) hlsLog.shift(); }
 var PLUTO_HLS = /^https?:\/\/(jmp2\.uk\/plu-[0-9a-f]+\.m3u8|[a-z0-9.-]*\.pluto\.tv\/)/i;
 function hlsWithoutAltAudio(text, base) {
     // url.resolve, not "new URL": the Node of a Tizen 5 screen is old and has no global URL (the links would then stay relative)
@@ -1085,6 +1085,18 @@ function handler(req, res) {
     if (req.method === "OPTIONS") { cors(res); res.writeHead(204); res.end(); return; }
 
     if (path === "/ping") { send(res, 200, { ok: 1, v: VERSION, session: !!session }); return; }
+    // diagnostics: the app's own log lines (sent every few seconds while Settings > Tizen 5 Diagnostics is on); d=0 turns it off and clears
+    if (path === "/t5log" && req.method === "POST" && local) {
+        readBody(req, 100000, function (body) {
+            try {
+                var b = JSON.parse(body);
+                if (b.d === 1 || b.d === "1") { if (!hlsOn) { hlsOn = true; hlsNote("diagnostics on; node " + process.version); } (b.lines || []).forEach(function (l) { hlsNote("app: " + String(l).slice(0, 400)); }); }
+                else if (hlsOn) { hlsOn = false; hlsLog = []; }
+            } catch (e) {}
+            send(res, 200, { ok: 1 });
+        });
+        return;
+    }
     if (path === "/hls-debug") { send(res, 200, hlsLog.join("\n") + "\n", "text/plain; charset=utf-8"); return; }          // diagnostics: empty unless Settings > Tizen 5 diagnostics is on
 
     if (path === "/" || path === "/s") {
