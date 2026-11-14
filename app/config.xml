@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://apl.tv/app" version="1.1.1" viewmodes="maximized">
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://apl.tv/app" version="1.1.2" viewmodes="maximized">
     <!--
       APL TV: an IPTV player for your own M3U playlists and Xtream accounts, in the style of APL Launcher.
       package id = APLTVMedia   (Tizen requires EXACTLY 10 characters [0-9A-Za-z])
       appId      = APLTVMedia.TV
       service    = APLTVMedia.Helper (phone setup page behind a QR code, EPG and network helper)
     -->
-    <tizen:application id="APLTVMedia.TV" package="APLTVMedia" required_version="6.0"/>
+    <tizen:application id="APLTVMedia.TV" package="APLTVMedia" required_version="5.0"/>
     <tizen:profile name="tv"/>
 
     <name>APL TV</name>

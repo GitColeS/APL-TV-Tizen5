@@ -18,9 +18,9 @@ SCRIPTS = [
     "js/lang-fr.js", "js/lang-pl.js", "js/i18n.js", "js/keys.local.js", "js/dev.local.js", "js/core.js", "js/android.js", "js/nav.js", "js/qr.js", "js/helper.js",
     "js/smart.js", "js/stalker.js", "js/media.js", "js/data.js", "js/epg.js", "js/meta.js", "js/player.js", "js/ui.js", "js/home.js", "js/live.js", "js/guide.js",
     "js/sports.js", "js/vod.js", "js/library.js", "js/detail.js", "js/person.js", "js/search.js", "js/settings.js", "js/multiview.js", "js/osd.js", "js/voice.js",
-    "js/saver.js", "js/updater.js", "js/app.js",
+    "js/saver.js", "js/updater.js", "js/app.js", "js/tizen5-patch.js",
 ]
-STYLES = ["css/tv.css", "css/tv2.css"]
+STYLES = ["css/tv.css", "css/tv2.css", "css/tizen5-patch.css"]
 LOADER = 1           # raise it when boot.js changes: the screens then ask for APL Launcher Setup, once
 REINSTALL = "1.0.1"  # minimum installed version: raise it when config.xml or service/service.js change
 
@@ -88,7 +88,7 @@ def compat_css():
     return "\n".join(out) + "\n"
 
 def write_compat():
-    path = os.path.join(A, STYLES[-1])
+    path = os.path.join(A, "css/tv2.css")      # the generated spacing rules live in tv2.css, not in the last style
     css = open(path, encoding="utf-8").read()
     if COMPAT_BEGIN in css:
         css = css[:css.index(COMPAT_BEGIN)]

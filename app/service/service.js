@@ -22,7 +22,7 @@ var zlib = require("zlib");
 var os = require("os");
 var crypto = require("crypto");
 
-var PORT = 8765, VERSION = "1.1.1";
+var PORT = 8765, VERSION = "1.1.2";
 var IDLE_MS = 15 * 60 * 1000, SESSION_MS = 20 * 60 * 1000;
 var UA = "APL TV/" + VERSION + " (" + (global.APLTV_PLATFORM || "Tizen") + ")";
 
@@ -111,12 +111,14 @@ function get(target, timeoutMs, cb, hops, insecure, extra) {
     try {
         var hd = { "User-Agent": UA, "Accept-Encoding": "gzip", "Accept": "*/*" };
         if (extra) Object.keys(extra).forEach(function (k) { hd[k] = extra[k]; });         // a Stalker portal's own headers
-        rq = lib.get(target, { headers: hd, rejectUnauthorized: !insecure }, function (res) {
+        // Tizen 5 screens run Node 4: only http.get(options, callback) exists there, not get(url, options, callback)
+        var opts = require("url").parse(target); opts.headers = hd; opts.rejectUnauthorized = !insecure;
+        rq = lib.get(opts, function (res) {
             if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && hops < 6) {
                 res.resume();
                 clearTimeout(timer); finished = true;
                 var next = res.headers.location;
-                if (!/^https?:/i.test(next)) next = new URL(next, target).toString();
+                if (!/^https?:/i.test(next)) next = require("url").resolve(target, next);
                 get(next, timeoutMs, cb, hops + 1, insecure, extra);
                 return;
             }
@@ -129,8 +131,8 @@ function get(target, timeoutMs, cb, hops, insecure, extra) {
                 if (gun) gun.write(c); else out.write(c);
             });
             stream.on("end", function () { if (gun) gun.end(); else out.end(); });
-            stream.on("error", function (e) { out.destroy(e); });
-            finish(null, { status: res.statusCode, type: res.headers["content-type"] || "", body: out });
+            stream.on("error", function (e) { if (out.destroy) out.destroy(e); else out.emit("error", e); });
+            finish(null, { status: res.statusCode, type: res.headers["content-type"] || "", body: out, url: target });
         });
         rq.on("error", function (e) {
             // IPTV providers often have expired or self-made certificates: once more without the check
@@ -168,12 +170,13 @@ function tsOpen(r, target, hops, insecure) {
     var lib = /^https:/i.test(target) ? https : http;
     var rq;
     try {
-        rq = lib.get(target, { headers: { "User-Agent": UA, "Accept": "*/*", "Connection": "keep-alive" }, rejectUnauthorized: !insecure }, function (res) {
+        var tso = require("url").parse(target); tso.headers = { "User-Agent": UA, "Accept": "*/*", "Connection": "keep-alive" }; tso.rejectUnauthorized = !insecure;
+        rq = lib.get(tso, function (res) {
             if (r.stopped) { res.destroy(); return; }
             if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && hops < 6) {
                 res.resume();
                 var next = res.headers.location;
-                if (!/^https?:/i.test(next)) next = new URL(next, target).toString();
+                if (!/^https?:/i.test(next)) next = require("url").resolve(target, next);
                 tsOpen(r, next, hops + 1, insecure);
                 return;
             }
@@ -260,7 +263,7 @@ function tsStream(req, res, t) {
     var r = tsRec, fs = require("fs");
     var i = 0;
     while (i + 1 < r.segs.length && r.segs[i + 1].t <= t) i++;
-    var sg = r.segs[i], n = sg ? sg.n : 0, pos = 0, fd = null, closed = false, buf = Buffer.alloc(65536);
+    var sg = r.segs[i], n = sg ? sg.n : 0, pos = 0, fd = null, closed = false, buf = Buffer.alloc ? Buffer.alloc(65536) : new Buffer(65536);
     cors(res);
     res.writeHead(200, { "Content-Type": "video/mp2t", "Cache-Control": "no-store", "X-Start": String(sg ? sg.t : Date.now()) });
     req.on("close", function () { closed = true; if (fd !== null) { try { fs.closeSync(fd); } catch (e) {} fd = null; } });
@@ -278,7 +281,7 @@ function tsStream(req, res, t) {
         try { got = fs.readSync(fd, buf, 0, buf.length, pos); } catch (e) { got = 0; }
         if (got > 0) {
             pos += got;
-            if (res.write(Buffer.from(buf.slice(0, got)))) setImmediate(pump); else res.once("drain", pump);
+            if (res.write((function (b) { var c = new Buffer(b.length); b.copy(c); return c; })(buf.slice(0, got)))) setImmediate(pump); else res.once("drain", pump);
             return;
         }
         if (cur.done && pos >= cur.bytes) { try { fs.closeSync(fd); } catch (e) {} fd = null; n++; pos = 0; return setImmediate(pump); }
@@ -1053,6 +1056,26 @@ function sessionOk(k) { return !!(session && k && k === session.token && Date.no
 /* A wrong code counts: after 20 the session is closed (the TV shows a new code) */
 function wrongCode() { if (session && ++session.wrong >= 20) { log("too many wrong phone codes: session closed"); session = null; pending = []; } }
 
+/* ---------- Tizen 5 patch: Pluto TV streams without their separate audio track ----------
+   A Pluto TV master playlist lists the English audio twice: inside every video segment (H.264 + AAC) and again as a
+   separate audio-only stream (EXT-X-MEDIA TYPE=AUDIO). Samsung's AVPlay on Tizen 5 picks the separate one and plays
+   no sound. The same playlist without that entry makes it use the audio that is in the video. Only Pluto's own links
+   are handled here (where the audio is in the video too); another stream's separate audio may be its only audio. */
+var hlsLog = [], hlsOn = false;      // diagnostics (Settings > Tizen 5 diagnostics): what /hls received and answered, read at /hls-debug
+function hlsNote(line) { if (!hlsOn) return; hlsLog.push(new Date().toTimeString().slice(0, 8) + " " + line); if (hlsLog.length > 80) hlsLog.shift(); }
+var PLUTO_HLS = /^https?:\/\/(jmp2\.uk\/plu-[0-9a-f]+\.m3u8|[a-z0-9.-]*\.pluto\.tv\/)/i;
+function hlsWithoutAltAudio(text, base) {
+    // url.resolve, not "new URL": the Node of a Tizen 5 screen is old and has no global URL (the links would then stay relative)
+    function abs(u) { try { return require("url").resolve(base, u); } catch (e) { return u; } }
+    return text.split(/\r?\n/).map(function (line) {
+        if (/^#EXT-X-MEDIA/.test(line) && /TYPE=AUDIO/.test(line)) return null;          // the separate audio stream
+        if (/^#EXT-X-STREAM-INF/.test(line)) return line.replace(/,?AUDIO="[^"]*"/, "");
+        if (/^#EXT-X-MEDIA/.test(line) && /URI="/.test(line)) return line.replace(/URI="([^"]+)"/, function (m, u) { return 'URI="' + abs(u) + '"'; });   // subtitles
+        if (line && line.charAt(0) !== "#") return abs(line);                             // a video playlist
+        return line;
+    }).filter(function (l) { return l !== null; }).join("\n") + "\n";
+}
+
 function handler(req, res) {
     stopLater();
     var u = req.url || "/", path = u.split("?")[0], q = query(u), local = isLocal(req);
@@ -1062,6 +1085,7 @@ function handler(req, res) {
     if (req.method === "OPTIONS") { cors(res); res.writeHead(204); res.end(); return; }
 
     if (path === "/ping") { send(res, 200, { ok: 1, v: VERSION, session: !!session }); return; }
+    if (path === "/hls-debug") { send(res, 200, hlsLog.join("\n") + "\n", "text/plain; charset=utf-8"); return; }          // diagnostics: empty unless Settings > Tizen 5 diagnostics is on
 
     if (path === "/" || path === "/s") {
         var good = sessionOk(q.k);
@@ -1178,6 +1202,35 @@ function handler(req, res) {
                 r.body.pipe(res);
                 r.body.on("error", function () { try { res.end(); } catch (e) {} });
             }, 0, false, hd);
+        });
+        return;
+    }
+    if (path === "/hls" || path === "/hls.m3u8") {            // the address ends in .m3u8: Samsung's player takes the stream's type from it
+        if (!local) { send(res, 403, { error: "local only" }); return; }
+        if (!PLUTO_HLS.test(q.u || "")) { send(res, 400, { error: "not a Pluto stream" }); return; }
+        if (q.d === "1") { if (!hlsOn) { hlsOn = true; hlsNote("diagnostics on; node " + process.version + "; URL global: " + (typeof URL)); } }
+        else if (hlsOn) { hlsOn = false; hlsLog = []; }
+        hlsNote("request " + req.method + " " + path + " http/" + req.httpVersion + " from " + String(req.socket && req.socket.remoteAddress) +
+                " ua=" + String(req.headers["user-agent"] || "-").slice(0, 70) + " origin=" + String(req.headers.origin || "-") +
+                " accept=" + String(req.headers.accept || "-").slice(0, 40) + " range=" + String(req.headers.range || "-"));
+        res.on("close", function () { hlsNote("connection closed (response finished: " + res.finished + ")"); });
+        // whatever goes wrong, the player is sent on to the stream's own address and plays it as it would without this
+        var asIs = function (why) { hlsNote("sent on to the stream itself: " + why); try { res.writeHead(302, { "Location": q.u, "Cache-Control": "no-store" }); res.end(); } catch (e) {} };
+        get(q.u, 20000, function (err, r) {
+            if (err) { log("hls failed " + redact(q.u) + ": " + err.message); asIs("fetch failed: " + err.message); return; }
+            var chunks = [], size = 0;
+            r.body.on("data", function (c) { size += c.length; if (size < 2000000) chunks.push(c); });
+            r.body.on("error", function (e) { asIs("read failed: " + (e && e.message)); });
+            r.body.on("end", function () {
+                var text = Buffer.concat(chunks).toString("utf8");
+                if (r.status !== 200 || text.indexOf("#EXTM3U") !== 0) { asIs("upstream HTTP " + r.status + ", " + text.length + " bytes, starts " + JSON.stringify(text.slice(0, 20))); return; }
+                var out = hlsWithoutAltAudio(text, r.url || q.u);
+                var links = out.split("\n").filter(function (l) { return l && l.charAt(0) !== "#"; });
+                hlsNote("answered: " + out.length + " bytes (upstream " + text.length + "), " + links.length + " variants, first link " + String(links[0] || "").replace(/\?.*$/, "?...").slice(0, 110));
+                cors(res);
+                res.writeHead(200, { "Content-Type": "application/vnd.apple.mpegurl", "Content-Length": Buffer.byteLength(out), "Cache-Control": "no-store", "Connection": "close" });
+                res.end(out);
+            });
         });
         return;
     }

@@ -1,3 +1,19 @@
+# APL TV for Tizen 5 (unofficial fork)
+
+An unofficial fork of [Knikt/APL-TV](https://github.com/Knikt/APL-TV) so the Samsung app also runs on **2019 TVs (Tizen 5.0)**. Everything else is the original app; credit for it goes to its author. The original MIT license is kept (see `LICENSE`).
+
+What this fork changes:
+- `config.xml` accepts Tizen 5.0 (`required_version="5.0"`).
+- **Spacing:** Chromium 63 (Tizen 5) has no flex `gap`. `app/css/tizen5-patch.css` adds the margins the generated fallback misses (text next to an element, wrapped lists, a few grids), and `app/js/tizen5-patch.js` shows the header bar again when the focus returns to the tab bar on a page without a banner.
+- **Pluto TV audio:** the Pluto TV playlists list their audio twice (inside the video and as a separate stream) and AVPlay on Tizen 5 plays no sound from the separate one. The helper service (`service/service.js`, route `/hls.m3u8`) serves the same playlist without it, for Pluto TV streams only.
+- **Old Node:** the helper of a Tizen 5 TV runs Node 4.4, which lacks `http.get(url, options, callback)`, the global `URL` and `Buffer.alloc`; the helper's `get()` (guide, ratings, playlists) and the timeshift reader are changed to work there.
+- **Settings > Tizen 5 diagnostics** (off by default): short notes about the Pluto TV route, readable on the home network while it is on.
+- Automatic updates come from this repository (`app/js/boot.js`), not from the original one.
+
+Tested on a Samsung Q60R (2019) and with [tizen-sim](https://github.com/lucaskfp/tizen-sim) on Chromium 63. This repository contains no playlists, channels, keys or accounts: you add your own sources, as in the original.
+
+---
+
 <div align="center">
 
 # APL TV

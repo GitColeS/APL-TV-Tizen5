@@ -250,6 +250,8 @@ window.TV_LANG_FR = {
     "◀ ▶ 10 s  ·  Play/Pause  ·  ▲ Back to Live": "◀ ▶ 10 s  ·  Lecture/Pause  ·  ▲ Revenir au direct",
     "Pause the channel first: APL TV keeps it from that moment.": "Mets d'abord la chaîne en pause : APL TV la garde à partir de ce moment.",
     "Pause Live TV (Timeshift)": "Pause du direct (timeshift)",
+    "Tizen 5 diagnostics": "Diagnostic Tizen 5",
+    "Keeps short notes about Pluto TV streams in the screen's helper, to find out why a channel has no sound. They can be read on your home network while this is on, and are cleared when it is off.": "Garde de courtes notes sur les flux Pluto TV dans l'assistant de l'écran, pour comprendre pourquoi une chaîne n'a pas de son. Elles peuvent être lues sur ton réseau local tant que l'option est activée, et sont effacées quand elle est désactivée.",
     "Pause a channel and go back in it (◀ ▶ 10 s): APL TV keeps it from the moment you pause, up to an hour. Play/Pause or the first button of the bar pauses, Stop goes back to live.": "Mets une chaîne en pause et reviens en arrière (◀ ▶ 10 s) : APL TV la garde à partir du moment où tu mets en pause, jusqu'à une heure. Lecture/Pause ou le premier bouton de la barre met en pause, Stop revient au direct.",
     "Type or paste your Xtream details, your M3U link, or your Jellyfin, Emby or Plex server, then tap Send to the screen.": "Tape ou colle tes infos Xtream, ton lien M3U, ou ton serveur Jellyfin, Emby ou Plex, puis touche Envoyer à l'écran.",
     "Edit on Your Phone": "Modifier sur ton téléphone",
