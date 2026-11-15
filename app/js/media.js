@@ -288,7 +288,7 @@
     }
     /* Every Jellyfin and Emby source (Home), or only one (its tab) */
     function fresh(srcId) {
-        return Promise.all(TV.data.sources().filter(function (s) { return s.type === "jellyfin" && (!srcId || s.id === srcId); }).map(jfFresh));
+        return Promise.all(TV.data.enabledSources().filter(function (s) { return s.type === "jellyfin" && (!srcId || s.id === srcId); }).map(jfFresh));
     }
     function jfSeries(src, item) {
         var asOf = Date.now();

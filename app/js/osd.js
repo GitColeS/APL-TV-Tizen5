@@ -657,7 +657,7 @@
         var fav = D.isFav(ch.id);
         var items = [
             { label: fav ? T("Remove from Favorites") : T("Add to Favorites"), icon: fav ? "starLine" : "star", run: function () { var on = D.toggleFav(ch.id); TV.toast(on ? T("“{name}” added to Favorites", { name: ch.name }) : T("“{name}” removed from Favorites", { name: ch.name })); drawLive(); } },
-            { label: T("Watch in Multiview"), icon: "grid", run: function () { var c = ch; finish(); TV.multiview.open([c]); } }
+            TV.multiview.menuItem(ch, finish)
         ];
         if (liveIcons().indexOf("subs") >= 0) items.push({ label: T("Subtitles"), icon: "cc", run: function () { openPop("subs"); } });
         items.push({ label: T("Audio"), icon: "speaker", run: function () { openPop("audio"); } });

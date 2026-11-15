@@ -30,6 +30,13 @@
         page.innerHTML = "";
         var e = el("div", "empty");
         e.style.top = "300px";
+        if (D.sources().length && !D.enabledSources().length) {
+            e.innerHTML = "<div class='empty__title'>" + esc(T("No providers enabled")) + "</div><div class='empty__text'>" + esc(T("Turn a provider on in Settings. Your saved channels and favorites will return.")) + "</div>";
+            var settings = el("div", "btn btn--primary", TV.icon("settings", 30) + esc(T("Open Settings")));
+            e.appendChild(settings); page.appendChild(e);
+            heroNav = new TV.Nav({ onSelect: function () { TV.shell.go("settings", true); } }); heroNav.setTiles([settings]); heroNav.blur();
+            strips = []; TV.bg(""); return;
+        }
         e.innerHTML = "<div class='empty__title'>" + esc(T("Welcome to APL TV")) + "</div><div class='empty__text'>" +
             esc(T("Add your M3U playlist or your Xtream account: scan a QR code with your phone, or type it with the remote. Or your own media server: Jellyfin, Emby, Plex.")) + "</div>";
         var b1 = el("div", "btn btn--primary", TV.icon("phone", 30) + esc(T("Add from Your Phone")));
@@ -236,7 +243,7 @@
     function render() {
         dirty = false;
         var cat = D.catalog();
-        if (!D.sources().length || !cat) { empty(); return; }
+        if (!D.enabledSources().length || !cat) { empty(); return; }
         page.innerHTML = ""; page.appendChild(heroEl); page.appendChild(rowsEl);
         var had = featured.length;
         featured = pickFeatured();
@@ -291,7 +298,7 @@
         blur: function () { if (featured.length) zone = -1; paint(false); },
         key: function (code) {
             var K = TV.KEY;
-            if (!D.sources().length || !D.catalog()) { if (code === K.UP) return false; return heroNav ? (heroNav.key(code), true) : false; }
+            if (!D.enabledSources().length || !D.catalog()) { if (code === K.UP) return false; return heroNav ? (heroNav.key(code), true) : false; }
             if (code === K.UP) {
                 if (zone === -1 || (zone === 0 && !featured.length)) return false;
                 zone--; TV.sound.tick(); paint(true); return true;
@@ -309,7 +316,7 @@
             return false;
         },
         ok: function () {
-            if (!D.sources().length || !D.catalog()) { if (heroNav) heroNav.ok(); return; }
+            if (!D.enabledSources().length || !D.catalog()) { if (heroNav) heroNav.ok(); return; }
             if (zone === -1) { if (heroNav) heroNav.ok(); return; }
             var s = strips[zone];
             activate(s.current(), s.kindOf);
@@ -322,7 +329,7 @@
                 var fav = D.isFav(it.id);
                 TV.menu(it.name, [
                     { label: fav ? T("Remove from Favorites") : T("Add to Favorites"), icon: fav ? "starLine" : "star", run: function () { D.toggleFav(it.id); } },
-                    { label: T("Watch in Multiview"), icon: "grid", run: function () { TV.multiview.open([it]); } }
+                    TV.multiview.menuItem(it)
                 ]);
             } else {
                 TV.titleMenu(it.item || it, function () { view.invalidate(); }, { continueRow: !!it.item });

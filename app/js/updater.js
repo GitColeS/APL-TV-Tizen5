@@ -78,8 +78,9 @@
             return Promise.all(paths.map(function (p) { return getText(raw() + p).then(function (t) { files[p] = t; }); })).then(function () {
                 save({ version: v.version, loader: loader, scripts: v.scripts, styles: v.styles, body: v.body || null, files: files, at: Date.now() });
                 TV.log("update " + v.version + " downloaded");
-                TV.toast(v.notes ? T("APL TV {v} is ready: {notes}", { v: v.version, notes: v.notes }) : T("APL TV {v} is ready", { v: v.version }));
-                restartWhenIdle();
+                if (manual) offerApply(v);
+                else TV.toast(v.notes ? T("APL TV {v} is ready: {notes}", { v: v.version, notes: v.notes }) : T("APL TV {v} is ready", { v: v.version }));
+                if (!manual) restartWhenIdle();
             });
         }).catch(function (e) {
             TV.log("update check failed: " + (e && e.message));
@@ -87,13 +88,30 @@
         }).then(function () { busy = false; });
     }
 
-    /* Restarts on the Home page with nothing open, or while APL TV is in the background */
+    function offerApply(v) {
+        TV.alert({ title: T("APL TV {v} is ready", { v: v.version }), message: v.notes || "", buttons: [
+            { label: T("Later") },
+            { label: T("Restart Now"), run: function () { restartNow(v.version); } }
+        ] });
+    }
+    function restartNow(version) {
+        var apply = function () { if (TV.player) TV.player.stop(); global.location.reload(); };
+        if (TV.player && TV.player.current()) {
+            TV.alert({ title: T("Restart to Apply"), message: T("Restarting now will stop playback and apply APL TV {v}. Continue?", { v: version }), buttons: [
+                { label: T("Later") },
+                { label: T("Restart Now"), danger: true, run: apply }
+            ] });
+        } else apply();
+    }
+
+    /* Restarts on the Home page with nothing open, or while APL TV is in the background and no player is open */
     function restartWhenIdle() {
         setTimeout(function wait() {
             var hidden = document.hidden;
-            var idle = TV.shell && TV.shell.current() === "home" && TV.topNav && TV.topNav() === TV.shell.screen &&
+            var playing = TV.player && TV.player.current();
+            var idle = !playing && TV.shell && TV.shell.current() === "home" && TV.topNav && TV.topNav() === TV.shell.screen &&
                        !TV.osd.isOpen() && !TV.detail.isOpen() && !(TV.multiview && TV.multiview.isOpen());
-            if (!hidden && !idle) { setTimeout(wait, 20000); return; }
+            if (playing || (!hidden && !idle)) { setTimeout(wait, 20000); return; }
             global.location.reload();
         }, 4000);
     }

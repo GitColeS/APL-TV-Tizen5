@@ -11,6 +11,14 @@
     var T = TV.t;
     /* Where APL TV runs: a Samsung screen (Tizen), an LG TV (webOS), or the PC preview */
     TV.TIZEN = !!global.tizen;
+    TV.TIZEN_MAJOR = null;
+    if (TV.TIZEN) {
+        try {
+            var platformVersion = global.tizen.systeminfo.getCapabilities().platformVersion;
+            var majorVersion = parseInt(String(platformVersion || "").split(".")[0], 10);
+            if (isFinite(majorVersion)) TV.TIZEN_MAJOR = majorVersion;
+        } catch (e) {}
+    }
     TV.WEBOS = !TV.TIZEN && !!(global.PalmSystem || global.PalmServiceBridge || global.webOSSystem);
     TV.ANDROID = !TV.TIZEN && !TV.WEBOS && !!global.APLAndroid;      // the Android app (android/), js/android.js
     TV.PREVIEW = !TV.TIZEN && !TV.WEBOS && !TV.ANDROID;

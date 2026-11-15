@@ -321,6 +321,7 @@ body.is-preview { cursor: default; }
 .detail__progress .bar { width: 260px; }
 .detail__section { padding: 0 96px; margin-top: -270px; position: relative; }
 .detail__seasons { display: flex; gap: 14px; margin-bottom: 22px; height: 70px; align-items: center; }
+.detail__seasonclip { position: relative; width: 1728px; height: 70px; overflow: hidden; margin-bottom: 22px; }
 .detail__eps { position: relative; height: 420px; }
 .detail__epstrip { position: absolute; left: 0; top: 10px; display: flex; gap: 32px; transition: transform 340ms var(--ease); }
 .ep { flex: none; width: 420px; transition: transform 260ms var(--spring); }
@@ -495,6 +496,7 @@ body.is-preview { cursor: default; }
     transition: background 150ms ease, color 150ms ease, transform 220ms var(--spring); }
 .menu__item.is-focused { background: #fff; color: #1d1d1f; transform: scale(1.03); }
 .menu__item.is-danger { color: #ff453a; }
+.menu__item.is-disabled { opacity: 0.42; }
 .menu__item.is-focused.is-danger { color: #ff3b30; }
 .menu__item svg { flex: none; opacity: 0.9; }
 .menu__check { color: var(--blue); }

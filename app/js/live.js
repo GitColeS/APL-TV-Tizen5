@@ -35,7 +35,7 @@
         root.appendChild(cardsBox);
         nextBox = el("div", "lv__next");
         root.appendChild(nextBox);
-        hint = el("div", "lv__hint", esc(T("OK: full screen · Hold OK: favorites, multiview")));
+        hint = el("div", "lv__hint", esc(T(TV.multiview.available() ? "OK: full screen · Hold OK: favorites, multiview" : "OK: full screen · Hold OK: favorites")));
         root.appendChild(hint);
         cards = new TV.HList({ clip: cardsBox, inner: inner, step: 336, viewW: 1728, render: renderCard, onFocus: onCardFocus,
             onWindow: function (a, b) { for (var i = a; i < b; i++) { var c = cards.items[i]; if (c) TV.prefetchLogo(c.logo); } } });
@@ -262,7 +262,7 @@
                 cats = categories(); buildChips(); paintChips();
                 if (inFav) loadCategory(); else { cards.refresh(); showInfo(cards.current()); }
             } },
-            { label: T("Watch in Multiview"), icon: "grid", run: function () { TV.multiview.open([ch]); } },
+            TV.multiview.menuItem(ch),
             { label: T("Full Screen"), icon: "tv", run: function () { fullScreen(ch); } }
         ];
         items.splice(1, 0, { label: T("Add to a Group"), icon: "plus", run: function () { groupMenu(ch); } },

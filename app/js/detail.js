@@ -13,7 +13,7 @@
 
     var TV = global.TV, el = TV.el, esc = TV.esc, T = TV.t, D = TV.data;
     var root, inner, bgEl, item = null, meta = null, btnNav = null, zone = "btns", zones = ["btns"], isOpen = false, token = 0;
-    var seasons = {}, seasonKeys = [], seasonIndex = 0, seasonEls = [], seasonRow = null, epStrip = null, tmdbTv = 0;
+    var seasons = {}, seasonKeys = [], seasonIndex = 0, seasonEls = [], seasonRow = null, seasonClip = null, seasonScroll = 0, epStrip = null, tmdbTv = 0;
     var certInfo = null, mainEl, sectionEl, castStrip = null, castEl = null, extras = [], extraLists = {}, onCloseCb = null, history = [], lastClosed = null;
 
     function build() {
@@ -41,7 +41,7 @@
         if (opts.push && item && isOpen) history.push(item);
         else if (opts.push && item && !isOpen && lastClosed) history.push(lastClosed);
         else if (!opts.push && !opts.back) history = [];
-        item = it; meta = null; certInfo = null; seasons = {}; seasonKeys = []; seasonIndex = 0; epStrip = null; castStrip = null; extras = []; extraLists = {}; zone = "btns"; tmdbTv = 0;
+        item = it; meta = null; certInfo = null; seasons = {}; seasonKeys = []; seasonIndex = 0; seasonEls = []; seasonRow = null; seasonClip = null; seasonScroll = 0; epStrip = null; castStrip = null; extras = []; extraLists = {}; zone = "btns"; tmdbTv = 0;
         var my = ++token;
         isOpen = true;
         root.classList.add("is-open");
@@ -258,15 +258,17 @@
 
         // ---- below: seasons and episodes, the saga, More Like This, the cast ----
         sectionEl = el("div", "detail__section");
-        seasonEls = []; seasonRow = null; epStrip = null;
+        seasonEls = []; seasonRow = null; seasonClip = null; epStrip = null;
         if (it.kind === "series" && seasonKeys.length) {
+            seasonClip = el("div", "detail__seasonclip");
             seasonRow = el("div", "detail__seasons");
+            seasonRow.style.marginBottom = "0";
             seasonEls = seasonKeys.map(function (k) {
                 var c = el("div", "chip", esc(T("Season {n}", { n: k })) + (seasonDone(k) ? "<span class='chip__seen'>" + TV.icon("check", 22) + "</span>" : ""));
                 seasonRow.appendChild(c);
                 return c;
             });
-            sectionEl.appendChild(seasonRow);
+            seasonClip.appendChild(seasonRow); sectionEl.appendChild(seasonClip);
             var eps = seasons[seasonKeys[seasonIndex]] || [];
             epStrip = new TV.Strip({ items: eps, height: 400, left: 0, width: 1728, gap: 32, make: makeEp, onFocus: function () {} });
             epStrip.root.className = "detail__eps";
@@ -360,11 +362,17 @@
     function paint() {
         if (zone === "btns") btnNav.refocus(); else btnNav.blur();
         seasonEls.forEach(function (c, i) { c.classList.toggle("is-current", i === seasonIndex); c.classList.toggle("is-focused", zone === "seasons" && i === seasonIndex); });
+        if (seasonClip && seasonEls[seasonIndex]) {
+            var selected = seasonEls[seasonIndex], left = selected.offsetLeft, right = left + selected.offsetWidth, width = seasonClip.clientWidth || 1728;
+            if (left < seasonScroll) seasonScroll = left;
+            else if (right > seasonScroll + width) seasonScroll = right - width;
+            seasonRow.style.transform = "translateX(" + (-seasonScroll) + "px)";
+        }
         if (epStrip) epStrip.setActive(zone === "eps");
         extras.forEach(function (x) { x.strip.setActive(zone === x.id); });
         if (castStrip) castStrip.setActive(zone === "cast");
         // the row in use comes up under the top of the screen; the first screen when on the buttons
-        var target = zone === "seasons" || zone === "eps" ? seasonRow : zone === "cast" ? castEl : (extraOf(zone) ? extraOf(zone).strip.root : null);
+        var target = zone === "seasons" ? seasonRow : zone === "eps" ? epStrip && epStrip.root : zone === "cast" ? castEl : (extraOf(zone) ? extraOf(zone).strip.root : null);
         var y = target ? topIn(target) - 110 : 0;
         inner.style.transform = "translateY(" + (-Math.max(0, y)) + "px)";
     }

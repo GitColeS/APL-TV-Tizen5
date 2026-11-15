@@ -227,7 +227,7 @@
             TV.menu(ch.num + "  " + ch.name, (replay ? [{ label: p0[1] <= Date.now() ? T("Watch the Replay") : T("Start Over"), icon: "restart", run: function () { TV.catchup.play(ch, p0); } }] : []).concat([
                 { label: T("Watch"), icon: "play", run: function () { TV.live.play(ch, chans); } },
                 { label: fav ? T("Remove from Favorites") : T("Add to Favorites"), icon: fav ? "starLine" : "star", run: function () { D.toggleFav(ch.id); } },
-                { label: T("Watch in Multiview"), icon: "grid", run: function () { TV.multiview.open([ch]); } },
+                TV.multiview.menuItem(ch),
                 { label: T("TV Guide for This Channel"), icon: "list", run: function () { TV.live.guideMenu(ch); } }
             ]));
         }

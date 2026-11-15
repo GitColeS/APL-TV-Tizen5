@@ -657,7 +657,7 @@
     function nhlTeam(x) { x = x || {}; return ((x.placeName && x.placeName["default"]) || "") + " " + ((x.commonName && x.commonName["default"]) || ""); }
     function nhlCanada(list) {
         list.forEach(function (m) {
-            if (m.lkey !== "hockey/nhl" || m.state === "post" || m.tv || (m.nhlAsked && Date.now() - m.nhlAsked < 6 * 3600000)) return;
+            if (m.lkey !== "hockey/nhl" || m.state === "post" || (m.nhlAsked && Date.now() - m.nhlAsked < 6 * 3600000)) return;
             m.nhlAsked = Date.now();
             nhlSchedule(nhlDay(m.start)).then(function (games) {
                 var g = games.filter(function (x) { return Math.abs(Date.parse(x.startTimeUTC) - m.start) < 15 * 60000 && (sameClub(nhlTeam(x.homeTeam), m.home) || sameClub(nhlTeam(x.awayTeam), m.away)); })[0];
@@ -665,7 +665,11 @@
                 b.sort(function (x, y) { return (x.market === "N" ? 0 : 1) - (y.market === "N" ? 0 : 1); });
                 var names = [];
                 b.forEach(function (x) { var n = NHL_CA[x.network] || x.network; if (names.indexOf(n) < 0) names.push(n); });
-                if (names.length) { m.tv = names; tvSoon(); }
+                if (names.length) {
+                    var existing = Array.isArray(m.tv) ? m.tv : (m.tv ? [m.tv] : []);
+                    names.forEach(function (n) { if (existing.indexOf(n) < 0) existing.push(n); });
+                    m.tv = existing; tvSoon();
+                }
             });
         });
     }

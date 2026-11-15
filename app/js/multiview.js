@@ -201,5 +201,17 @@
         }
     };
 
-    TV.multiview = { open: openMv, isOpen: function () { return open; }, close: function () { if (open) closeMv(false); } };
+    function available() { return !TV.TIZEN || (TV.TIZEN_MAJOR !== null && TV.TIZEN_MAJOR >= 6); }
+    function menuItem(channel, beforeOpen) {
+        return { label: T("Watch in Multiview"), icon: "grid", disabled: !available(), run: function () {
+            if (!available()) { TV.toast(T("Not available on this TV")); return; }
+            if (beforeOpen) beforeOpen();
+            openMv([channel]);
+        } };
+    }
+    function openGuarded(chans) {
+        if (!available()) { TV.toast(T("Not available on this TV")); return; }
+        openMv(chans);
+    }
+    TV.multiview = { open: openGuarded, available: available, menuItem: menuItem, isOpen: function () { return open; }, close: function () { if (open) closeMv(false); } };
 })(window);

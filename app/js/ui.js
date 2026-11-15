@@ -607,7 +607,7 @@
         var list = el("div", "menu__list");
         panel.appendChild(list);
         var tiles = items.map(function (it) {
-            var r = el("div", "menu__item" + (it.danger ? " is-danger" : ""), "<span class='menu__label'>" + esc(it.label) + "</span>" + (it.check ? "<span class='menu__check'>" + TV.icon("check", 30) + "</span>" : (it.icon ? TV.icon(it.icon, 30) : "")));
+            var r = el("div", "menu__item" + (it.danger ? " is-danger" : "") + (it.disabled ? " is-disabled" : ""), "<span class='menu__label'>" + esc(it.label) + "</span>" + (it.check ? "<span class='menu__check'>" + TV.icon("check", 30) + "</span>" : (it.icon ? TV.icon(it.icon, 30) : "")));
             list.appendChild(r);
             return r;
         });

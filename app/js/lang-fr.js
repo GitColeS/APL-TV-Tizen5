@@ -791,6 +791,9 @@ window.TV_LANG_FR = {
     "APL TV {v} is out: install it once with APL Launcher Setup on the PC": "APL TV {v} est sorti : installe-le une fois avec APL Launcher Setup sur le PC",
     "APL TV {v} is ready: {notes}": "APL TV {v} est prêt : {notes}",
     "APL TV {v} is ready": "APL TV {v} est prêt",
+    "Restart Now": "Redémarrer maintenant",
+    "Restart to Apply": "Redémarrer pour appliquer",
+    "Restarting now will stop playback and apply APL TV {v}. Continue?": "Le redémarrage arrêtera la lecture et appliquera APL TV {v}. Continuer ?",
     "Update failed: {error}. Try again later.": "La mise à jour a échoué : {error}. Réessaie plus tard.",
     "no network": "pas de réseau",
     "Going back to the installed version…": "Retour à la version installée…",
@@ -904,5 +907,14 @@ window.TV_LANG_FR = {
     /* Shown through T() from 365Scores' tables: the groups of a competition (the KHL's conferences) */
     "Western Conference": "Conférence Ouest",
     "Scandinavia": "Scandinavie",
-    "Eastern Conference": "Conférence Est"
+    "Eastern Conference": "Conférence Est",
+    "Provider": "Fournisseur",
+    "Provider disabled": "Fournisseur désactivé",
+    "Turn this provider on or off. Its saved channels and favorites are kept.": "Active ou désactive ce fournisseur. Ses chaînes et favoris restent enregistrés.",
+    "No providers enabled": "Aucun fournisseur activé",
+    "Turn a provider on in Settings.": "Active un fournisseur dans les réglages.",
+    "Turn a provider on in Settings. Your saved channels and favorites will return.": "Active un fournisseur dans les réglages. Tes chaînes et favoris enregistrés réapparaîtront.",
+    "Open Settings": "Ouvrir les réglages",
+    "Not available on this TV": "Indisponible sur ce téléviseur",
+    "OK: full screen · Hold OK: favorites": "OK : plein écran · Maintenir OK : favoris"
 };

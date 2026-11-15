@@ -812,6 +812,9 @@ window.TV_LANG_PL = {
     "APL TV {v} is out: install it once with APL Launcher Setup on the PC": "Dostępny jest APL TV {v}: zainstaluj go jednorazowo przez APL Launcher Setup na komputerze",
     "APL TV {v} is ready: {notes}": "APL TV {v} jest gotowy: {notes}",
     "APL TV {v} is ready": "APL TV {v} jest gotowy",
+    "Restart Now": "Uruchom ponownie teraz",
+    "Restart to Apply": "Uruchom ponownie, aby zastosować",
+    "Restarting now will stop playback and apply APL TV {v}. Continue?": "Ponowne uruchomienie zatrzyma odtwarzanie i zastosuje APL TV {v}. Kontynuować?",
     "Update failed: {error}. Try again later.": "Aktualizacja nie powiodła się: {error}. Spróbuj ponownie później.",
     "no network": "brak sieci",
     "Going back to the installed version…": "Powrót do zainstalowanej wersji…",
@@ -920,10 +923,19 @@ window.TV_LANG_PL = {
     "New Shows": "Nowe seriale",
     "APL TV {v} is out: install its new .ipk once": "Dostępny jest APL TV {v}: zainstaluj jednorazowo nowy plik .ipk",
     "APL TV {v} is out: install its new .apk once": "Dostępny jest APL TV {v}: zainstaluj jednorazowo nowy plik .apk",
-    "Picture frozen: switching to {quality}": "Obraz się zatrzymał: przełączam na {quality}",
+    "Picture frozen: switching to {quality}": "Obraz się zatrzymał. Zmieniono wersję: {quality}",
     "Runs the installed version again, until the next update.": "Ponownie uruchamia zainstalowaną wersję, do następnej aktualizacji.",
     /* Shown through T() from 365Scores' tables: the groups of a competition (the KHL's conferences) */
     "Western Conference": "Konferencja Zachodnia",
     "Scandinavia": "Skandynawia",
-    "Eastern Conference": "Konferencja Wschodnia"
+    "Eastern Conference": "Konferencja Wschodnia",
+    "Provider": "Dostawca",
+    "Provider disabled": "Dostawca wyłączony",
+    "Turn this provider on or off. Its saved channels and favorites are kept.": "Włącz lub wyłącz dostawcę. Zapisane kanały i ulubione pozostaną zachowane.",
+    "No providers enabled": "Brak włączonych dostawców",
+    "Turn a provider on in Settings.": "Włącz dostawcę w Ustawieniach.",
+    "Turn a provider on in Settings. Your saved channels and favorites will return.": "Włącz dostawcę w Ustawieniach. Zapisane kanały i ulubione wrócą.",
+    "Open Settings": "Otwórz Ustawienia",
+    "Not available on this TV": "Niedostępne na tym telewizorze",
+    "OK: full screen · Hold OK: favorites": "OK: pełny ekran · Przytrzymaj OK: ulubione"
 };

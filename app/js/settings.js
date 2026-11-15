@@ -47,8 +47,8 @@
     function mainPage() {
         var rows = [{ section: T("Playlists") }];
         D.sources().forEach(function (s) {
-            rows.push({ label: s.name, value: fmtCount(s), acc: "chevron", icon: typeIcon(s),
-                desc: typeLabel(s) + (s.error ? "\n" + s.error : "") + (s.at ? "\n" + T("Updated {d}", { d: new Date(s.at).toLocaleString(TV.locale) }) : ""),
+            rows.push({ label: s.name, value: (s.enabled === false ? T("Off") + " · " : "") + fmtCount(s), acc: "chevron", icon: typeIcon(s),
+                desc: typeLabel(s) + (s.enabled === false ? "\n" + T("Provider disabled") : "") + (s.error ? "\n" + s.error : "") + (s.at ? "\n" + T("Updated {d}", { d: new Date(s.at).toLocaleString(TV.locale) }) : ""),
                 run: function () { push(sourcePage(s.id)); } });
         });
         if (D.sources().length) rows.push({ label: T("Edit on Your Phone"), acc: "chevron", icon: "phone", desc: T("Hide and order your categories, make your groups of channels and order your favorites on your phone, then send it all to the TV."),
@@ -165,7 +165,7 @@
         rows.push({ section: T("Updates") });
         rows.push(toggleRow(T("Automatic Updates"), "autoUpdate", T("APL TV checks GitHub every 6 hours and updates itself, then restarts when nothing is playing. Your playlists and settings stay.")));
         rows.push({ label: T("Check for Updates"), icon: "refresh", run: function () { if (TV.updater) TV.updater.check(true); } });
-        if (TV.updater && TV.updater.fromBundle()) rows.push({ label: T("Back to the Installed Version"), value: TV.updater.installed(), acc: "chevron",
+        if (TV.updater && TV.updater.fromBundle()) rows.push({ label: T("Back to the Installed Version"), value: T("Package {v}", { v: TV.updater.installed() }), acc: "chevron",
             desc: TV.TIZEN ? T("Runs the version installed with APL Launcher Setup again, until the next update.") : T("Runs the installed version again, until the next update."), run: function () { TV.updater.reset(); } });
         rows.push({ section: T("About") });
         rows.push({ label: T("Refresh All Playlists"), icon: "refresh", run: function () { refreshAll(); } });
@@ -279,6 +279,10 @@
         var rows = [];
         rows.push({ label: T("Name"), value: s.name, acc: "chevron", run: function (row) {
             edit(row, { value: s.name, onDone: function (v) { if (v) { D.updateSource(id, { name: v }); D.rebuild(); } redraw(); } });
+        } });
+        rows.push({ label: T("Provider"), value: s.enabled === false ? T("Off") : T("On"), acc: "chevron", desc: T("Turn this provider on or off. Its saved channels and favorites are kept."), run: function () {
+            D.setSourceEnabled(id, s.enabled === false);
+            replaceTop(sourcePage(id));
         } });
         if (s.type === "xtream") {
             rows.push({ label: T("Server"), value: s.server });
@@ -621,7 +625,7 @@
         });
     }
     function refreshAll() {
-        var list = D.sources();
+        var list = D.enabledSources();
         if (!list.length) return;
         var i = 0;
         (function next() {

@@ -11,7 +11,7 @@
     "use strict";
 
     var TV = global.TV, el = TV.el, esc = TV.esc, T = TV.t, D = TV.data;
-    TV.VERSION = "1.1.5";
+    TV.VERSION = (global.TV_UPDATE && global.TV_UPDATE.running) || (global.TV_BUILD && global.TV_BUILD.version) || "0";
     TV.DONATE = "https://ko-fi.com/knikt";     // the Ko-fi page for donations (Settings > About, README, .github/FUNDING.yml)
     var BASE = [
         { id: "home", label: T("Home") },
@@ -262,12 +262,12 @@
         TV.heap("start");
         try { if (TV.DEV && navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(function (e) { TV.log("storage " + Math.round(e.usage / 1048576) + " MB used of " + Math.round(e.quota / 1048576) + " MB"); }); } catch (e) {}
         D.start(function (m) { bootMsg.textContent = m; }).then(function () {
-            var hasData = D.sources().length && D.catalog() && (D.catalog().live.chans.length || D.catalog().movies.items.length);
+            var hasData = D.enabledSources().length && D.catalog() && (D.catalog().live.chans.length || D.catalog().movies.items.length);
             var tab = TV.pref("startTab") || "home";
             if (tab === "settings" || tab === "search" || !TV.views[tab]) tab = "home";
             go(hasData ? tab : "home", true);
             // the first start (or the first after this update): how to show the playlist, then the rest
-            if (TV.pref("setupDone") !== 1 && TV.playlistSetup) setTimeout(function () { TV.playlistSetup(function () { if (hasData) setTimeout(offerResume, 800); }); }, 700);
+            if ((!D.sources().length || D.enabledSources().length) && TV.pref("setupDone") !== 1 && TV.playlistSetup) setTimeout(function () { TV.playlistSetup(function () { if (hasData) setTimeout(offerResume, 800); }); }, 700);
             else if (hasData) setTimeout(offerResume, 1200);
             setTimeout(function () { TV.$("boot").classList.add("is-hidden"); document.body.classList.remove("is-booting"); global.TV_BOOT_OK = true; }, 150);
             readRequest();

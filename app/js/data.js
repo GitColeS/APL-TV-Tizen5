@@ -20,6 +20,19 @@
 
     /* ---------- sources ---------- */
     function sources() { return TV.load("sources", []) || []; }
+    function enabledSources() { return sources().filter(function (s) { return s.enabled !== false; }); }
+    function setSourceEnabled(id, enabled) {
+        var list = sources(), found = false;
+        list.forEach(function (s) { if (s.id === id) { s.enabled = !!enabled; found = true; } });
+        if (!found) return false;
+        saveSources(list);
+        rebuild();
+        if (enabled) {
+            var s = list.filter(function (x) { return x.id === id; })[0], c = cats[id];
+            if (!c || Date.now() - (c.at || 0) > MAX_AGE || (c.v || 1) < CATALOG_V) whenQuiet(function () { refresh([s]); });
+        }
+        return true;
+    }
     function saveSources(list) { TV.save("sources", list); }
 
     function normServer(s) {
@@ -276,7 +289,7 @@
     function fire(what) { if (TV.mark) TV.mark("data:" + (what || "catalog")); listeners.forEach(function (fn) { try { fn(what || "catalog"); } catch (e) { TV.log("listener: " + e.message); } }); }
 
     function rebuild() {
-        var list = sources(), many = list.length > 1;
+        var all = sources(), list = enabledSources(), many = all.length > 1;
         // Settings > Sort the Categories / Tidy the Names (asked at the first start): off = your playlist as it is
         var tidyNames = TV.pref("tidyNames") !== false, tidyCats = TV.pref("tidyCats") !== false;
         var m = { live: { cats: [], chans: [], byId: {}, byCat: {} }, movies: { cats: [], items: [], byId: {}, byCat: {} }, series: { cats: [], items: [], byId: {}, byCat: {} }, epg: [] };
@@ -440,8 +453,9 @@
         return (TV.epg && TV.epg.prune ? TV.epg.prune() : Promise.resolve()).then(function () { return Promise.all(list.map(function (s) {
             return readCatalog(s.id).then(function (c) { if (c) cats[s.id] = c; });
         })); }).then(function () {
-            var missing = list.filter(function (s) { return !cats[s.id]; });
-            var partial = list.filter(function (s) { return cats[s.id] && (!cats[s.id].movies || !cats[s.id].series); });
+            var active = enabledSources();
+            var missing = active.filter(function (s) { return !cats[s.id]; });
+            var partial = active.filter(function (s) { return cats[s.id] && (!cats[s.id].movies || !cats[s.id].series); });
             list.forEach(function (s) { var c = cats[s.id]; if (c) { c.movies = c.movies || { cats: [], items: [] }; c.series = c.series || { cats: [], items: [] }; } });
             if (partial.length) setTimeout(function () {
                 TV.log("movies and series: loading again in the background (" + partial.length + ")");
@@ -452,7 +466,7 @@
             return sequence(missing, function (s) { return loadSource(s, progress).catch(function (e) { TV.log("load " + s.name + ": " + e.message); TV.toast(s.name + " : " + e.message, true); }); })
                 .then(rebuild);
         }).then(function () {
-            var old = sources().filter(function (s) { return cats[s.id] && (Date.now() - (cats[s.id].at || 0) > MAX_AGE || (cats[s.id].v || 1) < CATALOG_V); });
+            var old = enabledSources().filter(function (s) { return cats[s.id] && (Date.now() - (cats[s.id].at || 0) > MAX_AGE || (cats[s.id].v || 1) < CATALOG_V); });
             if (old.length) whenQuiet(function () { refresh(old, function () {}); });
         });
     }
@@ -473,7 +487,7 @@
         })();
     }
     function refresh(list, progress) {
-        list = list || sources();
+        list = (list || enabledSources()).filter(function (s) { return s.enabled !== false; });
         return sequence(list, function (s) { return loadSource(s, progress || function () {}).catch(function (e) { TV.log("refresh " + s.name + ": " + e.message); }); }).then(rebuild);
     }
     function sequence(items, fn) {
@@ -1221,7 +1235,7 @@
 
     restoreThemes();            // the titles already known for your hidden themes, before anything is drawn
     TV.data = {
-        sources: sources, addSource: addSource, removeSource: removeSource, updateSource: updateSource, normServer: normServer, xtreamFromUrl: xtreamFromUrl,
+        sources: sources, enabledSources: enabledSources, setSourceEnabled: setSourceEnabled, addSource: addSource, removeSource: removeSource, updateSource: updateSource, normServer: normServer, xtreamFromUrl: xtreamFromUrl,
         loadSource: loadSource, start: start, refresh: refresh, onChange: onChange, rebuild: rebuild, xAuth: xAuth, regroup: function () { groupCache = {}; },
         catalog: function () { return merged; },
         channelsIn: channelsIn, channelsNamed: channelsNamed, channel: channel, streamUrl: streamUrl, catOf: catOf, sourceOf: sourceOf,

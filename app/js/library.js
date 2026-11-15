@@ -15,7 +15,7 @@
     function label(s) { return s.type === "plex" ? "Plex" : s.kind === "emby" ? "Emby" : "Jellyfin"; }
     /* The tabs of the media servers: "Plex", "Jellyfin"… (the server's own name when two have the same) */
     function tabs() {
-        var list = D.sources().filter(isMedia), count = {};
+        var list = D.enabledSources().filter(isMedia), count = {};
         list.forEach(function (s) { count[label(s)] = (count[label(s)] || 0) + 1; });
         return list.map(function (s) { ensure(s.id); return { id: "m-" + s.id, label: count[label(s)] > 1 ? s.name : label(s) }; });
     }

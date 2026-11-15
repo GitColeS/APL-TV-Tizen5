@@ -12,7 +12,7 @@
 
     function make(kind, viewId) {
         var root, chipsEl, chipStrip, gridClip, countEl, grid, chips = [], chipEls = [], chipIndex = 0, chipScroll = 0, zone = "grid", visible = false, catId = null, loadTimer = null, dirty = true;
-        var genreList = null, coverStale = false;
+        var genreList = null, coverStale = false, offNav = null;
         var SORTS = [["default", T("Default Order")], ["added", T("Recently Added")], ["az", T("A to Z")], ["year", T("Year, Newest First")], ["rating", T("Rating, Best First")]];
         var key = kind === "movies" ? "movies" : "series";
 
@@ -184,12 +184,16 @@
         /* keep: the same category drawn again (a title hidden, the playlist refreshed): you stay where you were */
         function render(keep) {
             dirty = false;
-            if (!D.catalog() || !D.sources().length) {
+            if (!D.catalog() || !D.enabledSources().length) {
                 chipStrip.innerHTML = ""; grid.set([], 0);
-                gridClip.querySelector(".vod__gridin").innerHTML = "<div class='empty' style='top:160px;width:1728px'><div class='empty__title'>" + esc(T("No playlist yet")) +
-                    "</div><div class='empty__text'>" + esc(T("Add one in Settings.")) + "</div></div>";
+                var off = D.sources().length > 0 && !D.enabledSources().length;
+                gridClip.querySelector(".vod__gridin").innerHTML = "<div class='empty' style='top:160px;width:1728px'><div class='empty__title'>" + esc(T(off ? "No providers enabled" : "No playlist yet")) +
+                    "</div><div class='empty__text'>" + esc(T(off ? "Turn a provider on in Settings." : "Add one in Settings.")) + "</div>" + (off ? "<div class='btn btn--primary vod__settings'>" + TV.icon("settings", 30) + esc(T("Open Settings")) + "</div>" : "") + "</div>";
+                offNav = null;
+                if (off) { var b = gridClip.querySelector(".vod__settings"); offNav = new TV.Nav({ onSelect: function () { TV.shell.go("settings", true); } }); offNav.setTiles([b]); }
                 return;
             }
+            offNav = null;
             buildChips();
             var want = TV.pref(key + "Cat") || "recent";
             load(want !== "sort" && want !== "genres" && exists(want) ? want : "recent", keep);
@@ -204,9 +208,10 @@
                 TV.bg("", "dark");
             },
             hide: function () { visible = false; TV.meta.clearQueue(); TV.$("bg").classList.remove("is-dark"); },
-            enter: function () { zone = grid.items.length ? "grid" : "chips"; paintChips(); grid.setActive(zone === "grid"); },
-            blur: function () { grid.setActive(false); paintChips(); },
+            enter: function () { if (offNav) { offNav.refocus(); return; } zone = grid.items.length ? "grid" : "chips"; paintChips(); grid.setActive(zone === "grid"); },
+            blur: function () { if (offNav) { offNav.blur(); return; } grid.setActive(false); paintChips(); },
             key: function (code) {
+                if (offNav) { offNav.key(code); return true; }
                 var K = TV.KEY;
                 if (zone === "chips") {
                     if (code === K.LEFT || code === K.RIGHT) {
@@ -235,6 +240,7 @@
                 return true;
             },
             ok: function () {
+                if (offNav) { offNav.ok(); return; }
                 if (zone === "chips" && chips[chipIndex] && chips[chipIndex].id === "sort") { clearTimeout(loadTimer); chooseSort(); return; }
                 if (zone === "chips" && chips[chipIndex] && chips[chipIndex].id === "genres") { clearTimeout(loadTimer); openGenres(); return; }
                 if (zone === "chips") { clearTimeout(loadTimer); load(chips[chipIndex].id); if (grid.items.length) { zone = "grid"; grid.setActive(true); paintChips(); } return; }
