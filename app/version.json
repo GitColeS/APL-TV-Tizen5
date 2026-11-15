@@ -1,8 +1,8 @@
 {
- "version": "1.1.5",
+ "version": "1.1.6",
  "loader": 1,
  "reinstall": "1.0.1",
- "notes": "Canadian NHL broadcasters (Sportsnet, TVA, CBC...) when the country is Canada; credit line in Settings",
+ "notes": "Catalog refresh waits until playback ends (Tizen 5 stability fix)",
  "platforms": {
   "tizen": {
    "reinstall": "1.0.1"

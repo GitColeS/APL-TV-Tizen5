@@ -464,8 +464,11 @@
     function whenQuiet(fn) {
         var since = Date.now();
         (function check() {
-            var still = Date.now() - Math.max(TV.keyAt || 0, bootAt) > 45000 && !(TV.player && TV.player.isBuffering());
-            if (still || Date.now() - since > 20 * 60000) { TV.log("catalog refresh: starting (" + Math.round((Date.now() - bootAt) / 1000) + " s after start)"); fn(); }
+            /* Playback is not an idle moment: a large catalog refresh can starve AVPlay or exhaust memory on older TVs.
+               Keep the 20-minute ceiling for idle UI, but never cross it while a stream is open. */
+            var canRefresh = !(TV.player && TV.player.current());
+            var still = canRefresh && Date.now() - Math.max(TV.keyAt || 0, bootAt) > 45000 && !(TV.player && TV.player.isBuffering());
+            if (still || (canRefresh && Date.now() - since > 20 * 60000)) { TV.log("catalog refresh: starting (" + Math.round((Date.now() - bootAt) / 1000) + " s after start)"); fn(); }
             else setTimeout(check, 5000);
         })();
     }
